@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Strings Challenge</title>
+  <style>
+    body { font-family: monospace; background: #000; color: #00ff00; padding: 2rem; min-height: 100vh; margin: 0; }
+    .terminal { max-width: 700px; margin: 0 auto; }
+    h2 { color: #00ff00; font-size: 1.2rem; border-bottom: 1px solid #00ff00; padding-bottom: .5rem; }
+    .output { background: #0a0a0a; border: 1px solid #00ff00; padding: 1rem; overflow-x: auto; white-space: pre; font-size: .8rem; line-height: 1.5; max-height: 320px; overflow-y: auto; color: #aaa; }
+    .flag-line { color: #00ff00; font-weight: bold; }
+    .cmd { color: #00ff00; }
+    .note { color: #888; font-size: .8rem; margin-top: 1rem; border: 1px dashed #333; padding: .8rem; }
+  </style>
+</head>
+<body>
+  <div class="terminal">
+    <h2>$ strings mystery_binary | grep iriiaCTF</h2>
+    <p style="color:#888; font-size:.85rem; margin-bottom:1rem;">
+      The binary file contains thousands of garbage strings. Running the strings command and filtering with grep reveals:
+    </p>
+
+    <div style="color:#00ff00; font-size:.8rem; margin-bottom:.5rem;">$ strings mystery_binary | grep iriiaCTF</div>
+    <div class="output"><span class="flag-line">iriiaCTF{str1ngs_r3v34l_s3cr3ts}</span>
+</div>
+
+    <div style="margin-top:1.5rem; color:#00ff00; font-size:.8rem;">$ strings mystery_binary | head -20</div>
+    <div class="output">/lib64/ld-linux-x86-64.so.2
+libm.so.6
+printf
+malloc
+GCC: (Ubuntu 11.3.0) 11.3.0
+.shstrtab
+.interp
+.gnu.hash
+_2kdh3kj_garbage
+xZ8!@#corrupt
+QU14binary_junk
+x9Fmemory_block
+<span class="flag-line">iriiaCTF{str1ngs_r3v34l_s3cr3ts}</span>
+more_garbage_data_here
+__libc_start_main
+corrupted_section_07
+__gmon_start__
+.text
+.rodata
+.data
+</div>
+
+    <div class="note">
+      📌 In a real CTF: <code>strings ./mystery_binary | grep iriiaCTF</code><br>
+      The strings command extracts all readable ASCII text from a binary file.
+    </div>
+  </div>
+</body>
+</html>

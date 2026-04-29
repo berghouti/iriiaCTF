@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel – iriiaCTF{% endblock %}
+{% block content %}
+<div class="section">
+  <div class="section-title">[ ADMIN CONSOLE ]</div>
+  
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="flag-msg {{ 'ok' if category == 'success' else 'err' }}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <div class="stats-row" style="justify-content: flex-start; margin-bottom: 2rem;">
+    <div class="stat-card">
+      <span class="stat-num">{{ challenges|length }}</span>
+      <span class="stat-label">CHALLENGES</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ users|length }}</span>
+      <span class="stat-label">USERS</span>
+    </div>
+    <div class="stat-card">
+      <span class="stat-num">{{ total_solves }}</span>
+      <span class="stat-label">TOTAL SOLVES</span>
+    </div>
+  </div>
+
+  <div style="margin-bottom: 2rem;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <h2 style="font-family:var(--font-head); font-size:1.2rem; color:var(--accent2);">CHALLENGES</h2>
+      <a href="{{ url_for('admin_new_challenge') }}" class="btn btn-success" style="font-size:0.8rem;">+ NEW CHALLENGE</a>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Diff.</th>
+            <th>Points</th>
+            <th>Solves</th>
+            <th>Visible</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ch in challenges %}
+          <tr class="{% if not ch.visible %}solved-row{% endif %}">
+            <td>{{ ch.id }}</td>
+            <td>{{ ch.title }}</td>
+            <td><span class="chal-cat">{{ ch.category }}</span></td>
+            <td><span class="diff-badge diff-{{ ch.difficulty }}">{{ ch.difficulty }}</span></td>
+            <td class="solved-pts">{{ ch.points }}</td>
+            <td>{{ ch.solve_count }}</td>
+            <td>
+              <span style="color:{{ '#00ff9d' if ch.visible else '#ff4d6d' }};">
+                {{ '✓' if ch.visible else '✗' }}
+              </span>
+              <button onclick="toggleVisibility({{ ch.id }})" class="cat-tab" style="margin-left:0.5rem; font-size:0.7rem;">Toggle</button>
+            </td>
+            <td>
+              <a href="{{ url_for('admin_edit_challenge', cid=ch.id) }}" class="btn btn-outline" style="padding:0.3rem 0.8rem; font-size:0.75rem;">Edit</a>
+              <form method="POST" action="{{ url_for('admin_delete_challenge', cid=ch.id) }}" style="display:inline;" onsubmit="return confirm('Delete this challenge?');">
+                <button type="submit" class="btn btn-danger" style="padding:0.3rem 0.8rem; font-size:0.75rem;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <h2 style="font-family:var(--font-head); font-size:1.2rem; color:var(--accent2); margin-bottom:1rem;">TOP USERS</h2>
+    <div style="overflow-x:auto;">
+      <table class="score-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Score</th>
+            <th>Solves</th>
+            <th>Last solve</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>{{ u.username }}</td>
+            <td class="solved-pts">{{ u.score }}</td>
+            <td>{{ u.solve_count }}</td>
+            <td>{{ u.last_solve_time|truncate(16,true,'') if u.last_solve_time else '-' }}</td>
+            <td>
+              <form method="POST" action="{{ url_for('admin_delete_user', uid=u.id) }}" onsubmit="return confirm('Delete user {{ u.username }}?');">
+                <button type="submit" class="btn btn-danger" style="padding:0.3rem 0.8rem; font-size:0.75rem;">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function toggleVisibility(challengeId) {
+    const resp = await fetch(`/admin/challenge/${challengeId}/toggle`, { method: 'POST' });
+    const data = await resp.json();
+    location.reload();
+  }
+</script>
+{% endblock %}

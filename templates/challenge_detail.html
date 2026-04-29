@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+{% block title %}{{ ch.title }} — iriiaCTF{% endblock %}
+{% block content %}
+
+<div class="detail-wrap">
+  <div class="detail-header">
+    <a href="/challenges" class="detail-back">← Back to Challenges</a>
+    <div class="detail-title">{{ ch.title }}</div>
+    <div class="detail-meta">
+      <span class="diff-badge diff-{{ ch.difficulty }}">{{ ch.difficulty }}</span>
+      <span style="font-family:var(--font-mono);font-size:.8rem;color:var(--accent2)">{{ ch.category }}</span>
+      <span style="font-family:var(--font-head);color:var(--yellow)">{{ ch.points }} pts</span>
+      {% if ch.id in solved_ids %}
+      <span style="font-family:var(--font-mono);font-size:.8rem;color:var(--accent2);border:1px solid var(--accent2);padding:.2rem .5rem">✓ SOLVED</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="detail-body">
+    <h3>// Description</h3>
+    <div class="desc-text">{{ ch.description | safe }}</div>
+
+    {# ── Interactive HTML page (Web only) ────────────────────────── #}
+    {% if ch.category in HTML_CATEGORIES and ch.challenge_html %}
+    <div style="margin-top:1.5rem">
+      <a href="/challenge-page/{{ ch.slug }}" target="_blank" class="challenge-link">
+        🚀 Open Interactive Challenge →
+      </a>
+      <iframe src="/challenge-page/{{ ch.slug }}" class="challenge-iframe"
+              style="margin-top:1rem;border:1px solid var(--border);width:100%;min-height:420px;"></iframe>
+    </div>
+
+    {# ── Downloadable file (Forensics / OSINT / Misc / Reverse / Pwn) #}
+    {% elif ch.download_file %}
+    <div style="margin-top:1.5rem">
+      <a href="/download/{{ ch.slug }}" class="btn btn-outline" download
+         style="display:inline-flex;align-items:center;gap:.5rem;font-size:.85rem;">
+        ⬇️ Download Challenge File
+      </a>
+      <p style="font-size:.72rem;color:var(--text-dim);margin-top:.4rem;">
+        File: <code>{{ ch.download_file }}</code>
+      </p>
+    </div>
+
+    {# ── External URL fallback ─────────────────────────────────────── #}
+    {% elif ch.external_url %}
+    <div style="margin-top:1.5rem">
+      <a href="{{ ch.external_url }}" target="_blank" class="challenge-link">🔗 Open Challenge →</a>
+    </div>
+    {% endif %}
+    {# ── Crypto / Linux / pure-text challenges: description is enough #}
+
+    {# ── Hint ────────────────────────────────────────────────────────  #}
+    {% if ch.hint %}
+    <div style="margin-top:1.5rem">
+      <button id="hint-btn" class="btn btn-outline" onclick="toggleHint()"
+              style="font-size:.8rem;padding:.4rem 1rem;">▼ Show Hint</button>
+      <div id="hint-box" class="hint-box">
+        <p>💡 <b>Hint:</b> {{ ch.hint | safe }}</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if ch.id not in solved_ids %}
+  <div class="flag-form">
+    <h3>// Submit Flag</h3>
+    <div class="flag-input-row">
+      <input type="text" id="flag-input" class="flag-input"
+             placeholder="iriiaCTF{your_flag_here}"
+             data-slug="{{ ch.slug }}"
+             autocomplete="off" spellcheck="false"/>
+      <button id="submit-btn" class="btn btn-success"
+              onclick="submitFlag('{{ ch.slug }}')">Submit</button>
+    </div>
+    <div id="flag-msg" class="flag-msg"></div>
+  </div>
+  {% else %}
+  <div class="flag-form" style="border-color:var(--accent2);text-align:center;">
+    <div style="font-family:var(--font-head);font-size:1.5rem;color:var(--accent2)">✓ Challenge Solved!</div>
+    <div style="font-family:var(--font-mono);font-size:.85rem;color:var(--text-dim);margin-top:.5rem">
+      You earned <span style="color:var(--yellow)">{{ ch.points }} points</span> for this challenge.
+    </div>
+    <a href="/challenges" class="btn btn-outline" style="margin-top:1rem;display:inline-block">← Next Challenge</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  function toggleHint() {
+    var box = document.getElementById('hint-box');
+    var btn = document.getElementById('hint-btn');
+    if (box.classList.contains('show')) {
+      box.classList.remove('show');
+      btn.innerHTML = '▼ Show Hint';
+    } else {
+      box.classList.add('show');
+      btn.innerHTML = '▲ Hide Hint';
+    }
+  }
+
+  async function submitFlag(slug) {
+    var input = document.getElementById('flag-input');
+    var msg   = document.getElementById('flag-msg');
+    var btn   = document.getElementById('submit-btn');
+    var flag  = input.value.trim();
+
+    if (!flag) {
+      msg.className = 'flag-msg err';
+      msg.innerText = 'Please enter a flag.';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = 'Checking...';
+    msg.className = 'flag-msg';
+    msg.innerText = '';
+
+    try {
+      var resp = await fetch('/submit/' + slug, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({flag: flag})
+      });
+      var data = await resp.json();
+
+      if (data.ok) {
+        msg.className = 'flag-msg ok';
+        msg.innerText = data.msg;
+        location.reload();
+      } else {
+        msg.className = 'flag-msg err';
+        msg.innerText = data.msg;
+      }
+    } catch (err) {
+      msg.className = 'flag-msg err';
+      msg.innerText = 'Network error. Try again.';
+    } finally {
+      btn.disabled = false;
+      btn.innerText = 'Submit';
+    }
+  }
+</script>
+{% endblock %}

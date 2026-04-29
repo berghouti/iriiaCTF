@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Leaderboard — iriiaCTF{% endblock %}
+{% block content %}
+
+<div class="score-wrap">
+  <h1>📊 Leaderboard</h1>
+
+  {# ── Personal stats bar (only when logged in) ─────────────────── #}
+  {% if me %}
+  <div style="margin-bottom:2rem; padding:1.2rem 1.5rem; border:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; gap:2rem; flex-wrap:wrap;">
+    <div style="font-family:var(--font-mono); font-size:.75rem; color:var(--accent2); letter-spacing:.1em;">YOUR STATS</div>
+    <div class="stat-card" style="margin:0;">
+      <span class="stat-num">{{ me.score }}</span>
+      <span class="stat-label">Points</span>
+    </div>
+    <div class="stat-card" style="margin:0;">
+      <span class="stat-num">{{ solved_ids|length }}</span>
+      <span class="stat-label">Solved</span>
+    </div>
+    <div class="stat-card" style="margin:0;">
+      <span class="stat-num">{{ total_chals - solved_ids|length }}</span>
+      <span class="stat-label">Remaining</span>
+    </div>
+    <div style="flex:1; min-width:180px;">
+      <div style="font-family:var(--font-mono); font-size:.7rem; color:var(--text-dim); margin-bottom:.4rem;">
+        Completion: {{ ((solved_ids|length / total_chals * 100)|int) if total_chals > 0 else 0 }}%
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" style="width:{{ ((solved_ids|length / total_chals * 100)|int) if total_chals > 0 else 0 }}%"></div>
+      </div>
+    </div>
+    {% if solved_ids|length >= total_chals and total_chals > 0 %}
+    <div style="font-family:var(--font-head); color:var(--accent2)">🏆 ALL SOLVED!</div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {# ── Ranked leaderboard table ─────────────────────────────────── #}
+  {% if board %}
+  <table class="score-table">
+    <thead>
+      <tr>
+        <th style="width:3rem;">#</th>
+        <th>Player</th>
+        <th style="text-align:center;">Solves</th>
+        <th style="text-align:right;">Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in board %}
+      <tr class="{% if me and u.id == me.id %}solved-row{% endif %}"
+          style="{% if loop.index == 1 %}border-left:3px solid var(--yellow){% elif loop.index == 2 %}border-left:3px solid #aaa{% elif loop.index == 3 %}border-left:3px solid #c96{% endif %}">
+        <td style="font-family:var(--font-mono); color:{% if loop.index == 1 %}var(--yellow){% elif loop.index == 2 %}#aaa{% elif loop.index == 3 %}#c96{% else %}var(--text-dim){% endif %}; font-size:.85rem;">
+          {% if loop.index == 1 %}🥇
+          {% elif loop.index == 2 %}🥈
+          {% elif loop.index == 3 %}🥉
+          {% else %}{{ loop.index }}{% endif %}
+        </td>
+        <td style="font-family:var(--font-mono);">
+          {{ u.username }}
+          {% if me and u.id == me.id %}
+          <span style="font-size:.7rem; color:var(--accent2); margin-left:.5rem;">(you)</span>
+          {% endif %}
+        </td>
+        <td style="text-align:center; color:var(--text-dim); font-family:var(--font-mono); font-size:.85rem;">
+          {{ u.solve_count }}
+        </td>
+        <td class="solved-pts" style="text-align:right;">{{ u.score }} pts</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align:center; padding:3rem; border:1px solid var(--border); background:var(--bg2);">
+    <div style="font-family:var(--font-head); font-size:1.2rem; color:var(--text-dim)">No players yet.</div>
+    <a href="/challenges" class="btn btn-primary" style="margin-top:1rem; display:inline-block">Start Solving →</a>
+  </div>
+  {% endif %}
+
+  {% if me %}
+  <div style="margin-top:1.5rem; text-align:center;">
+    <a href="/challenges" class="btn btn-outline">← Back to Challenges</a>
+  </div>
+  {% endif %}
+</div>
+
+{% endblock %}

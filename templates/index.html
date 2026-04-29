@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}iriiaCTF — Home{% endblock %}
+{% block content %}
+
+<section class="hero">
+  <div class="hero-label">// Welcome to the arena</div>
+  <h1 class="hero-title">iriiaCTF</h1>
+  <p class="hero-sub">
+    Learn cybersecurity through hands-on challenges. Master web exploitation, cryptography,
+    forensics, and Linux skills — one flag at a time.
+  </p>
+  <div class="hero-btns">
+    {% if current_user %}
+      <a href="/learn" class="btn btn-primary">▶ Start Learning</a>
+      <a href="/challenges" class="btn btn-outline">⚑ View Challenges</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="btn btn-primary">LAUNCH TERMINAL (LOGIN)</a>
+      <a href="{{ url_for('register') }}" class="btn btn-outline">NEW RECRUIT (REGISTER)</a>
+    {% endif %}
+  </div>
+</section>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <span class="stat-num">{{ total_chals }}</span>
+    <span class="stat-label">Challenges</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ categories|length }}</span>
+    <span class="stat-label">Categories</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ total_points }}</span>
+    <span class="stat-label">Total Points</span>
+  </div>
+  <div class="stat-card">
+    <span class="stat-num">{{ total_users }}</span>
+    <span class="stat-label">Hackers Registered</span>
+  </div>
+</div>
+
+<section class="section">
+  <h2 class="section-title">Challenge Categories</h2>
+  <div class="cat-grid">
+    <a href="/challenges?cat=Web" class="cat-card">
+      <span class="cat-icon">🌐</span>
+      <div class="cat-name">Web</div>
+      <div class="cat-desc">Exploit websites, manipulate cookies, find hidden data in page source.</div>
+      <div class="cat-count">2 challenges · Easy → Medium</div>
+    </a>
+    <a href="/challenges?cat=Crypto" class="cat-card">
+      <span class="cat-icon">🔐</span>
+      <div class="cat-name">Cryptography</div>
+      <div class="cat-desc">Decode ciphers, crack encodings, and break simple encryption schemes.</div>
+      <div class="cat-count">3 challenges · Easy → Medium</div>
+    </a>
+    <a href="/challenges?cat=Forensics" class="cat-card">
+      <span class="cat-icon">🔍</span>
+      <div class="cat-name">Forensics</div>
+      <div class="cat-desc">Extract hidden data from files, images, and binary blobs.</div>
+      <div class="cat-count">2 challenges · Easy → Medium</div>
+    </a>
+    <a href="/challenges?cat=Linux" class="cat-card">
+      <span class="cat-icon">🐧</span>
+      <div class="cat-name">Linux Skills</div>
+      <div class="cat-desc">Master essential terminal commands every hacker needs to know.</div>
+      <div class="cat-count">4 challenges · Easy → Medium</div>
+    </a>
+  </div>
+</section>
+
+<section class="section" style="padding-top:0">
+  <h2 class="section-title">Live Terminal</h2>
+  <div id="live-terminal" style="background:var(--bg2); border:1px solid var(--border); padding:1.5rem; font-family:var(--font-mono); max-height:400px; overflow-y:auto;">
+    <!-- Terminal output will appear here dynamically -->
+  </div>
+  <div style="background:var(--bg); border:1px solid var(--border); border-top:none; padding:0.8rem 1.5rem; font-family:var(--font-mono); display:flex; align-items:center;">
+    <span style="color:var(--accent2); margin-right:0.5rem;">$</span>
+    <input type="text" id="term-input" autofocus
+           style="flex:1; background:transparent; border:none; color:var(--text); font-family:var(--font-mono); font-size:0.9rem; outline:none;"
+           placeholder="Type a command (help, whoami, date, ls, clear...)">
+  </div>
+  <p style="font-size:0.75rem; color:var(--text-dim); margin-top:0.5rem;">Try: <code style="color:var(--accent);">help</code> &mdash; This is a simulated front-end terminal for fun.</p>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function() {
+    const term = document.getElementById('live-terminal');
+    const input = document.getElementById('term-input');
+    let commandHistory = [];
+    let historyIndex = -1;
+
+    // Helper to add a line of output
+    function print(text, className = '') {
+      const line = document.createElement('div');
+      line.className = 'terminal-line ' + className;
+      line.innerHTML = text;   // allows simple HTML like <br> or <span>
+      term.appendChild(line);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    // Print the initial banner
+    print('Welcome to <span style="color:var(--accent)">iriiaCTF Terminal</span>');
+    print('Type <span style="color:var(--accent2)">help</span> to see available commands.');
+    print('───');
+    print(`<pre style="color:var(--accent2); margin:0.5rem 0;">
+ ██╗██████╗ ██╗██╗ █████╗  ██████╗████████╗███████╗
+ ██║██╔══██╗██║██║██╔══██╗██╔════╝╚══██╔══╝██╔════╝
+ ██║██████╔╝██║██║███████║██║        ██║   █████╗
+ ██║██╔══██╗██║██║██╔══██║██║        ██║   ██╔══╝
+ ██║██║  ██║██║██║██║  ██║╚██████╗   ██║   ██║
+ ╚═╝╚═╝  ╚═╝╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝
+        </pre>`);
+
+    // Command handlers
+    const commands = {
+      help: () => {
+        print('<span style="color:var(--accent2)">Available commands:</span>');
+        print('  help          Show this message');
+        print('  whoami        Display your identity');
+        print('  date          Show current date/time');
+        print('  ls            List fictional files');
+        print('  echo [text]   Print text back');
+        print('  banner        Display ASCII art');
+        print('  clear         Clear the terminal');
+        print('  login         Go to login page');
+        print('  register      Go to registration page');
+        print('───');
+      },
+      whoami: () => {
+        const user = '{{ current_user.username if current_user else "guest" }}';
+        print(`You are <span style="color:var(--accent2)">${user}</span>`);
+      },
+      date: () => {
+        const now = new Date().toString();
+        print(now);
+      },
+      ls: () => {
+        print('<span style="color:var(--accent)">challenges/</span>');
+        print('<span style="color:var(--accent)">learn/</span>');
+        print('<span style="color:var(--accent)">leaderboard/</span>');
+        print('flag.txt  hint.md');
+      },
+      echo: (args) => {
+        print(args.join(' '));
+      },
+      banner: () => {
+        print(`<pre style="color:var(--accent2); margin:0.5rem 0;">
+ ██╗██████╗ ██╗██╗ █████╗  ██████╗████████╗███████╗
+ ██║██╔══██╗██║██║██╔══██╗██╔════╝╚══██╔══╝██╔════╝
+ ██║██████╔╝██║██║███████║██║        ██║   █████╗
+ ██║██╔══██╗██║██║██╔══██║██║        ██║   ██╔══╝
+ ██║██║  ██║██║██║██║  ██║╚██████╗   ██║   ██║
+ ╚═╝╚═╝  ╚═╝╚═╝╚═╝╚═╝  ╚═╝ ╚═════╝   ╚═╝   ╚═╝
+        </pre>`);
+      },
+      clear: () => {
+        term.innerHTML = '';
+      },
+      login: () => {
+        window.location.href = '{{ url_for("login") }}';
+      },
+      register: () => {
+        window.location.href = '{{ url_for("register") }}';
+      }
+    };
+
+    input.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') {
+        const cmdLine = input.value.trim();
+        if (cmdLine === '') return;
+
+        // Add to history
+        commandHistory.push(cmdLine);
+        historyIndex = commandHistory.length;
+
+        // Print the command with prompt
+        print(`<span style="color:var(--accent2)">$</span> ${cmdLine}`);
+
+        // Parse command and arguments
+        const parts = cmdLine.split(/\s+/);
+        const cmd = parts[0].toLowerCase();
+        const args = parts.slice(1);
+
+        if (commands[cmd]) {
+          try {
+            commands[cmd](args);
+          } catch (err) {
+            print(`<span style="color:var(--accent3)">Error executing command: ${err.message}</span>`);
+          }
+        } else {
+          print(`Command not found: <span style="color:var(--accent3)">${cmd}</span>. Type 'help' for available commands.`);
+        }
+
+        input.value = '';
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (commandHistory.length > 0) {
+          historyIndex = Math.max(0, historyIndex - 1);
+          input.value = commandHistory[historyIndex];
+        }
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (historyIndex < commandHistory.length - 1) {
+          historyIndex++;
+          input.value = commandHistory[historyIndex];
+        } else {
+          historyIndex = commandHistory.length;
+          input.value = '';
+        }
+      }
+    });
+
+    // Focus input when clicking anywhere in terminal area
+    term.addEventListener('click', () => input.focus());
+  })();
+</script>
+{% endblock %}

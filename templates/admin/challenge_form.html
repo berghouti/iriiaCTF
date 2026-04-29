@@ -1,0 +1,258 @@
+{% extends "base.html" %}
+{% block title %}{% if ch %}Edit{% else %}New{% endif %} Challenge – Admin{% endblock %}
+{% block content %}
+<div class="section" style="max-width: 800px; margin: 0 auto;">
+  <div class="section-title">[ {{ 'EDIT' if ch else 'NEW' }} CHALLENGE ]</div>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, msg in messages %}
+        <div class="flag-msg {{ 'ok' if category == 'success' else 'err' }}">{{ msg }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  {# Pass category sets to JS #}
+  <script>
+    // HTML_CATS / FILE_CATS are injected from app.py via the template context
+    const HTML_CATS = {{ html_cats | list | tojson }};  // only Web
+    const FILE_CATS = {{ file_cats | list | tojson }};  // everything else
+  </script>
+
+  <form method="POST" enctype="multipart/form-data" class="detail-body" style="padding: 2rem;">
+
+    <!-- Slug -->
+    <div style="margin-bottom: 1.2rem;">
+      <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">SLUG *</label>
+      <input type="text" name="slug" id="slug-input" value="{{ ch.slug if ch else '' }}"
+             {{ 'readonly' if ch else '' }} required
+             class="flag-input" style="width:100%; margin-top:0.3rem;"
+             placeholder="web_challenge_01">
+      <p style="font-size:0.7rem; color:var(--text-dim);">Unique identifier (cannot be changed after creation)</p>
+    </div>
+
+    <!-- Title -->
+    <div style="margin-bottom: 1.2rem;">
+      <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">TITLE *</label>
+      <input type="text" name="title" value="{{ ch.title if ch else '' }}" required
+             class="flag-input" style="width:100%; margin-top:0.3rem;">
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+      <!-- Category -->
+      <div>
+        <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">CATEGORY</label>
+        <select name="category" id="category-select" class="flag-input"
+                style="width:100%; margin-top:0.3rem; background: var(--bg);">
+          {% set cats = ['Web','Crypto','Forensics','Linux','Misc','OSINT','Reverse','Pwn'] %}
+          {% for cat in cats %}
+            <option value="{{ cat }}" {% if ch and ch.category == cat %}selected{% endif %}>{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <!-- Difficulty -->
+      <div>
+        <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">DIFFICULTY</label>
+        <select name="difficulty" class="flag-input" style="width:100%; margin-top:0.3rem; background: var(--bg);">
+          {% for diff in ['Easy','Medium','Hard'] %}
+            <option value="{{ diff }}" {% if ch and ch.difficulty == diff %}selected{% endif %}>{{ diff }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Points -->
+    <div style="margin-top: 1.2rem;">
+      <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">POINTS</label>
+      <input type="number" name="points" value="{{ ch.points if ch else 50 }}" min="1"
+             class="flag-input" style="width:100%; margin-top:0.3rem;">
+    </div>
+
+    <!-- Description -->
+    <div style="margin-top: 1.2rem;">
+      <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">DESCRIPTION *</label>
+      <textarea name="description" rows="4" required
+                class="flag-input" style="width:100%; margin-top:0.3rem; resize:vertical;">{{ ch.description if ch else '' }}</textarea>
+    </div>
+
+    <!-- Hint -->
+    <div style="margin-top: 1.2rem;">
+      <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">HINT</label>
+      <input type="text" name="hint" value="{{ ch.hint if ch else '' }}"
+             class="flag-input" style="width:100%; margin-top:0.3rem;">
+    </div>
+
+    <!-- Flag -->
+    <div style="margin-top: 1.2rem;">
+      <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">FLAG *</label>
+      <input type="text" name="flag" value="{{ ch.flag if ch else '' }}" required
+             class="flag-input" style="width:100%; margin-top:0.3rem;"
+             placeholder="iriiaCTF{...}">
+    </div>
+
+    <!-- ── Dynamic file upload section ─────────────────────────────── -->
+
+    <!-- HTML Challenge File (Web / Crypto / Linux) -->
+    <div id="html-upload-section" style="margin-top: 1.5rem; display:none;">
+      <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">
+        CHALLENGE HTML FILE
+      </label>
+
+      {% if ch and ch.challenge_html %}
+      <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-dim);">
+        Current file: <span style="color:var(--accent2);">{{ ch.challenge_html }}</span>
+        — drop a new file below to replace it
+      </div>
+      {% endif %}
+
+      <div id="html-drop-zone" class="drop-zone" style="margin-top:0.5rem;">
+        <div class="drop-zone-icon">📄</div>
+        <div class="drop-zone-label">Drop your <strong>.html</strong> challenge file here</div>
+        <div class="drop-zone-sub">or click to browse</div>
+        <div id="html-file-name" class="drop-zone-chosen"></div>
+        <input type="file" name="challenge_html_file" id="html-file-input"
+               accept=".html,.htm" style="display:none;">
+      </div>
+    </div>
+
+    <!-- Downloadable File (Forensics / OSINT / Misc / Reverse / Pwn) -->
+    <div id="file-upload-section" style="margin-top: 1.5rem; display:none;">
+      <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">
+        CHALLENGE FILE (image, zip, binary…)
+      </label>
+
+      {% if ch and ch.download_file %}
+      <div style="margin-top:0.4rem; font-size:0.75rem; color:var(--text-dim);">
+        Current file: <span style="color:var(--accent2);">{{ ch.download_file }}</span>
+        — drop a new file below to replace it
+      </div>
+      {% endif %}
+
+      <div id="file-drop-zone" class="drop-zone" style="margin-top:0.5rem;">
+        <div class="drop-zone-icon">🗃️</div>
+        <div class="drop-zone-label">Drop your challenge file here</div>
+        <div class="drop-zone-sub">Image, ZIP, binary, PCAP… — or click to browse</div>
+        <div id="file-file-name" class="drop-zone-chosen"></div>
+        <input type="file" name="download_file" id="file-file-input" style="display:none;">
+      </div>
+    </div>
+
+    <!-- External URL (always visible) -->
+    <div style="margin-top: 1.2rem;">
+      <label style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">EXTERNAL URL</label>
+      <input type="text" name="external_url" value="{{ ch.external_url if ch else '' }}"
+             class="flag-input" style="width:100%; margin-top:0.3rem;"
+             placeholder="https://...">
+    </div>
+
+    <!-- Visible -->
+    <div style="margin-top: 1.5rem; display:flex; align-items:center; gap:0.8rem;">
+      <input type="checkbox" name="visible" id="visible"
+             {% if not ch or ch.visible %}checked{% endif %}
+             style="accent-color: var(--accent2); transform: scale(1.2);">
+      <label for="visible" style="font-family:var(--font-mono); font-size:0.8rem; color:var(--accent2);">VISIBLE</label>
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width:100%; margin-top:2rem; justify-content:center;">
+      {{ 'UPDATE' if ch else 'CREATE' }} CHALLENGE
+    </button>
+
+    <a href="{{ url_for('admin_index') }}" class="btn btn-outline"
+       style="width:100%; margin-top:0.8rem; justify-content:center; display:flex;">
+      ← BACK TO PANEL
+    </a>
+  </form>
+</div>
+
+<style>
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: 6px;
+  padding: 2rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  background: transparent;
+}
+.drop-zone:hover,
+.drop-zone.drag-over {
+  border-color: var(--accent2);
+  background: rgba(var(--accent2-rgb, 0,255,180), 0.05);
+}
+.drop-zone-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+.drop-zone-label {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-dim);
+}
+.drop-zone-sub {
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  margin-top: 0.25rem;
+}
+.drop-zone-chosen {
+  margin-top: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--accent2);
+  min-height: 1.2em;
+}
+</style>
+
+<script>
+// ── Show/hide upload zones based on category ────────────────────
+function updateUploadZone() {
+  const cat = document.getElementById('category-select').value;
+  const htmlSec  = document.getElementById('html-upload-section');
+  const fileSec  = document.getElementById('file-upload-section');
+
+  if (HTML_CATS.includes(cat)) {
+    htmlSec.style.display = 'block';
+    fileSec.style.display = 'none';
+  } else if (FILE_CATS.includes(cat)) {
+    htmlSec.style.display = 'none';
+    fileSec.style.display = 'block';
+  } else {
+    // Misc / unknown: show both
+    htmlSec.style.display = 'block';
+    fileSec.style.display = 'block';
+  }
+}
+
+document.getElementById('category-select').addEventListener('change', updateUploadZone);
+// Run on page load
+updateUploadZone();
+
+// ── Generic drag-and-drop helper ────────────────────────────────
+function bindDropZone(zoneId, inputId, labelId) {
+  const zone  = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  const label = document.getElementById(labelId);
+
+  zone.addEventListener('click', () => input.click());
+
+  zone.addEventListener('dragover', e => {
+    e.preventDefault();
+    zone.classList.add('drag-over');
+  });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+      // Transfer file to the hidden <input>
+      const dt = new DataTransfer();
+      dt.items.add(e.dataTransfer.files[0]);
+      input.files = dt.files;
+      label.textContent = '✓ ' + e.dataTransfer.files[0].name;
+    }
+  });
+  input.addEventListener('change', () => {
+    if (input.files.length) label.textContent = '✓ ' + input.files[0].name;
+  });
+}
+
+bindDropZone('html-drop-zone', 'html-file-input', 'html-file-name');
+bindDropZone('file-drop-zone', 'file-file-input', 'file-file-name');
+</script>
+{% endblock %}

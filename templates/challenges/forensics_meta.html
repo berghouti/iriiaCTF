@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Metadata Challenge</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0d1117; color: #c9d1d9; padding: 2rem; min-height: 100vh; margin: 0; }
+    .box { max-width: 500px; margin: 0 auto; }
+    h2 { color: #58a6ff; }
+    .download-btn { display: inline-block; padding: .7rem 1.5rem; background: #238636; color: white; text-decoration: none; border-radius: 6px; margin: 1rem 0; font-size: .9rem; }
+    .exif-table { width: 100%; border-collapse: collapse; font-family: monospace; font-size: .85rem; margin-top: 1rem; }
+    .exif-table th, .exif-table td { padding: .5rem .8rem; border: 1px solid #30363d; text-align: left; }
+    .exif-table th { background: #161b22; color: #58a6ff; }
+    .exif-table tr:nth-child(even) { background: #0d1117; }
+    .exif-table tr:nth-child(odd) { background: #161b22; }
+    .flag-field { color: #3fb950; font-weight: bold; }
+    .note { background: #161b22; border: 1px solid #30363d; padding: 1rem; border-radius: 6px; font-size: .85rem; color: #8b949e; margin-top: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🔍 Metadata Matters</h2>
+    <p style="color:#8b949e; font-size:.9rem;">
+      This image has something hidden in its EXIF data. Use <code>exiftool</code> or an online EXIF viewer.
+      For this challenge, we'll simulate what exiftool would show you:
+    </p>
+
+    <!-- Simulated EXIF output -->
+    <div style="margin: 1.5rem 0;">
+      <div style="font-family:monospace; font-size:.75rem; color:#58a6ff; margin-bottom:.5rem;">$ exiftool challenge.jpg</div>
+      <table class="exif-table">
+        <tr><th>Field</th><th>Value</th></tr>
+        <tr><td>File Name</td><td>challenge.jpg</td></tr>
+        <tr><td>File Type</td><td>JPEG</td></tr>
+        <tr><td>Image Width</td><td>1920</td></tr>
+        <tr><td>Image Height</td><td>1080</td></tr>
+        <tr><td>Camera Make</td><td>Canon</td></tr>
+        <tr><td>Camera Model</td><td>EOS R5</td></tr>
+        <tr><td>Date/Time</td><td>2024:01:15 14:23:01</td></tr>
+        <tr><td>GPS Latitude</td><td>36.7000° N</td></tr>
+        <tr><td>GPS Longitude</td><td>3.0833° E</td></tr>
+        <tr><td>Author</td><td>CTF_Admin</td></tr>
+        <tr><td class="flag-field">Comment</td><td class="flag-field">iriiaCTF{m3t4d4t4_t3lls_4ll}</td></tr>
+        <tr><td>Copyright</td><td>iriiaCTF 2024</td></tr>
+      </table>
+    </div>
+
+    <div class="note">
+      📌 In a real CTF, you'd download the image file and run <code>exiftool image.jpg</code> in your terminal.
+      The flag would be hidden in the <b>Comment</b> or <b>Description</b> EXIF field.
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Challenges — iriiaCTF{% endblock %}
+{% block content %}
+
+<div class="chals-header">
+  <h1>⚑ Challenges</h1>
+  <div class="cat-tabs">
+    {% for cat in categories %}
+      <a href="/challenges?cat={{ cat }}"
+         class="cat-tab {% if cat == active_cat %}active{% endif %}">
+        {{ cat }}
+      </a>
+    {% endfor %}
+  </div>
+</div>
+
+{% if challenges %}
+<div class="progress-wrap">
+  <div class="progress-bar">
+    <div class="progress-fill" style="width: {{ (solved_ids|length / total_chals * 100) if total_chals > 0 else 0 }}%"></div>
+  </div>
+  <div class="progress-label">
+    {{ solved_ids|length }} / {{ total_chals }} challenges solved
+  </div>
+</div>
+
+<div class="chals-grid">
+  {% for ch in challenges %}
+  <a href="/challenge/{{ ch.slug }}" class="chal-card {% if ch.id in solved_ids %}solved{% endif %}">
+    <div class="chal-top">
+      <div class="chal-cat">{{ ch.category }}</div>
+      <div class="chal-title">{{ ch.title }}</div>
+      <div class="chal-desc">{{ ch.description[:120] }}{% if ch.description|length > 120 %}...{% endif %}</div>
+    </div>
+    <div class="chal-bottom">
+      <span class="chal-pts">{{ ch.points }} pts</span>
+      <span class="diff-badge diff-{{ ch.difficulty }}">{{ ch.difficulty }}</span>
+    </div>
+  </a>
+  {% endfor %}
+</div>
+
+{% else %}
+<div style="text-align:center; padding: 3rem; color:var(--text-dim);">
+  <p>⚠️ No challenges found in this category.</p>
+</div>
+{% endif %}
+
+{% endblock %}

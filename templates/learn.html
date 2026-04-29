@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Learn CTF — iriiaCTF{% endblock %}
+{% block content %}
+
+<div class="learn-hero">
+  <h1>What is a CTF?</h1>
+  <p>Capture The Flag — the hacker's sport. Learn everything you need to get started.</p>
+</div>
+
+<div class="learn-grid">
+
+  <div class="learn-card">
+    <div class="learn-card-tag">// Definition</div>
+    <h3>🏴 Capture The Flag</h3>
+    <p>A CTF (Capture The Flag) is a cybersecurity competition where participants solve security puzzles to find hidden strings called <b style="color:var(--accent)">flags</b>. Each challenge tests a specific hacking skill — web exploitation, cryptography, forensics, reverse engineering, and more.</p>
+  </div>
+
+  <div class="learn-card">
+    <div class="learn-card-tag">// Flag Format</div>
+    <h3>⚑ What Does a Flag Look Like?</h3>
+    <p>Every flag on this platform follows the format below. Once you find it, paste it into the submission box to earn points.</p>
+    <code>iriiaCTF{s0m3_s3cr3t_h3r3}</code>
+    <p style="margin-top:.8rem">Flags can be hidden in page source, inside files, encoded in text, printed by scripts, and more.</p>
+  </div>
+
+  <div class="learn-card">
+    <div class="learn-card-tag">// Categories</div>
+    <h3>📂 Challenge Types</h3>
+    <p><b style="color:var(--accent2)">Web:</b> Find bugs in websites — hidden comments, cookie tampering, SQL injection.<br><br>
+    <b style="color:var(--accent2)">Crypto:</b> Decode encrypted messages — Caesar ciphers, Base64, XOR encryption.<br><br>
+    <b style="color:var(--accent2)">Forensics:</b> Investigate files — extract hidden data, read metadata, use strings.<br><br>
+    <b style="color:var(--accent2)">Linux:</b> Command-line mastery — find, grep, chmod, pipes, and more.</p>
+  </div>
+
+  <div class="learn-card">
+    <div class="learn-card-tag">// Tools</div>
+    <h3>🛠 Essential Tools</h3>
+    <p>You don't need much to start:</p>
+    <code>Browser DevTools (F12)
+CyberChef (online)
+Python 3
+Linux terminal
+exiftool
+strings command</code>
+    <p style="margin-top:.8rem">CyberChef at <b style="color:var(--accent)">gchq.github.io/CyberChef</b> is your best friend for decoding.</p>
+  </div>
+
+</div>
+
+<!-- Walkthrough -->
+<section class="section">
+  <h2 class="section-title">// Live Walkthrough — Solve Your First CTF</h2>
+
+  <div style="background:var(--bg2); border:1px solid var(--accent2); padding:1.5rem; margin-bottom:2rem;">
+    <div style="font-family:var(--font-mono); font-size:.8rem; color:var(--accent2); margin-bottom:.5rem;">EXAMPLE CHALLENGE — CAESAR CIPHER</div>
+    <p style="color:var(--text-dim); font-size:.9rem;">You receive this ciphertext: <code style="color:var(--accent); font-family:var(--font-mono);">luullNFWC{fkliwhu_flskhu_lv_ixq}</code></p>
+    <p style="color:var(--text-dim); font-size:.9rem; margin-top:.5rem;">The challenge says: <i>"Caesar used a shift of 3"</i>. Find the flag.</p>
+  </div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>Read the Challenge Carefully</h4>
+        <p>The challenge tells us it's a Caesar cipher with a shift of 3. That means every letter was shifted forward by 3. We need to shift backward by 3 to decode it.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>Choose Your Tool</h4>
+        <p>Go to <code>gchq.github.io/CyberChef</code>, search for "ROT13" in the operations panel, and set the amount to <code>3</code>. Or use Python:</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>Apply the Decode (Python)</h4>
+        <p>Open a terminal and run this snippet:</p>
+        <div style="background:var(--bg); border:1px solid var(--border); padding:1rem; font-family:var(--font-mono); font-size:.8rem; color:var(--accent2); white-space:pre; overflow-x:auto;">cipher = "luullNFWC{fkliwhu_flskhu_lv_ixq}"
+result = ""
+for c in cipher:
+    if c.isalpha():
+        base = ord('A') if c.isupper() else ord('a')
+        result += chr((ord(c) - base - 3) % 26 + base)
+    else:
+        result += c
+print(result)  # → iriiaCTF{cipher_cipher_is_fun}</div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>Submit the Flag</h4>
+        <p>Copy the decoded flag <code>iriiaCTF{cipher_cipher_is_fun}</code>, paste it into the challenge submission box, and click <b style="color:var(--accent2)">Submit</b>. You earn points! 🎉</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Cheat sheet -->
+<section class="section" style="padding-top:0">
+  <h2 class="section-title">// Quick Command Cheat Sheet</h2>
+  <div class="learn-grid" style="padding:0">
+    <div class="learn-card">
+      <div class="learn-card-tag">// Linux</div>
+      <h3>🐧 Must-Know Commands</h3>
+      <code>find / -name "flag.txt" 2>/dev/null
+grep -r "iriiaCTF" .
+strings binary_file | grep iriiaCTF
+cat file.txt
+chmod +x script.sh && ./script.sh
+echo "text" | base64 -d | rev</code>
+    </div>
+    <div class="learn-card">
+      <div class="learn-card-tag">// Python</div>
+      <h3>🐍 Crypto Helpers</h3>
+      <code>import base64
+base64.b64decode("aXJpaWE=")
+
+# XOR decode
+data = bytes.fromhex("2b303a3a")
+print(bytes([b^0x42 for b in data]))
+
+# Caesar shift
+chr((ord('l') - ord('a') - 3) % 26 + ord('a'))</code>
+    </div>
+    <div class="learn-card">
+      <div class="learn-card-tag">// Web</div>
+      <h3>🌐 Browser DevTools</h3>
+      <code>F12          → Open DevTools
+Ctrl+U       → View Page Source
+Elements tab → Inspect HTML
+Application  → Cookies/Storage
+Network tab  → HTTP requests
+Console tab  → Run JavaScript</code>
+    </div>
+    <div class="learn-card">
+      <div class="learn-card-tag">// Forensics</div>
+      <h3>🔍 File Analysis</h3>
+      <code>exiftool image.jpg       # metadata
+strings file.bin         # readable text
+file mystery             # identify type
+xxd file | head          # hex dump
+binwalk image.png        # hidden files
+steghide extract -sf img # steganography</code>
+    </div>
+  </div>
+</section>
+
+<div style="text-align:center; padding:3rem 2rem;">
+  <a href="/challenges" class="btn btn-primary" style="font-size:1rem; padding:1rem 2.5rem;">⚑ Start Solving Challenges</a>
+</div>
+
+{% endblock %}
