@@ -17,7 +17,8 @@ CHALLENGES_TEMPLATE_DIR = os.path.join(app.root_path, "templates", "challenges")
 UPLOAD_DIR               = os.path.join(app.root_path, "static", "uploads")
 os.makedirs(CHALLENGES_TEMPLATE_DIR, exist_ok=True)
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///ctf.db"
+UPLOAD_DIR = os.path.join(app.root_path, "static", "uploads")
 # Categories that use an interactive HTML page (iframe)
 HTML_CATEGORIES = {"Web"}
 # Categories that use a downloadable file attachment
